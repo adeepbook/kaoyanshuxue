@@ -1,0 +1,11 @@
+# 依赖与打包产物
+node_modules/
+dist/
+
+# 系统/编辑器
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+
+# 注意：API key 不在代码里（运行时存在本机 localStorage），不会被提交

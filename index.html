@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>考研 · 学习进度地图</title>
+<style>
+:root{--paper:#F4F6F1;--surface:#fff;--ink:#1E241C;--muted:#6E7566;--faint:#9AA191;--hair:#E5E9DF;--accent:#2E5E3D;--accent-soft:#EAF1E9;--font:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;--num:ui-monospace,Menlo,monospace;}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);}
+.wrap{max-width:760px;margin:0 auto;padding:56px 22px 60px}
+h1{font-size:27px;margin:0 0 6px;letter-spacing:-.5px}.lead{color:var(--muted);font-size:14px;margin:0 0 30px}
+.grid{display:grid;gap:14px}
+.card{display:flex;align-items:center;gap:18px;background:var(--surface);border:1px solid var(--hair);border-radius:16px;padding:20px 22px;text-decoration:none;color:inherit;transition:.14s}
+.card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 6px 20px rgba(30,36,28,.06)}
+.ring{flex:0 0 auto;position:relative;width:64px;height:64px}.ring svg{transform:rotate(-90deg)}
+.ring span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--num);font-size:15px;font-weight:600;color:var(--accent)}
+.c-main{flex:1 1 auto}.c-name{font-size:18px;font-weight:700}.c-sub{font-size:12.5px;color:var(--faint);margin-top:3px}
+.arrow{flex:0 0 auto;color:var(--faint);font-size:20px}
+.foot{margin-top:34px;color:var(--faint);font-size:12px;text-align:center;line-height:1.7}
+</style></head><body><div class="wrap">
+<h1>考研 · 学习进度地图</h1>
+<p class="lead">每个科目是独立的一份，进度与笔记互不干扰。点进去学习、追溯前置、导出复盘资料。</p>
+<div class="grid" id="grid"></div>
+<p class="foot">进度保存在本机 · 各科目可单独使用与分发</p>
+</div><script>
+const SUBJECTS=[
+    {id:'gaoshu',name:'高等数学',file:'%E9%AB%98%E7%AD%89%E6%95%B0%E5%AD%A6.html'},
+    {id:'linear',name:'线性代数',file:'%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0.html'},
+    {id:'prob',name:'概率论与数理统计',file:'%E6%A6%82%E7%8E%87%E8%AE%BA%E4%B8%8E%E6%95%B0%E7%90%86%E7%BB%9F%E8%AE%A1.html'}
+];
+const C=2*Math.PI*26;
+function readP(id){try{const v=localStorage.getItem('km-'+id+'-progress');if(v){const o=JSON.parse(v);return o;}}catch(e){}return {done:0,total:0};}
+document.getElementById('grid').innerHTML=SUBJECTS.map(s=>{const p=readP(s.id);const pct=p.total?Math.round(p.done/p.total*100):0;const len=p.total?p.done/p.total*C:0;
+return '<a class="card" href="'+s.file+'"><div class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="#E5E9DF" stroke-width="6"/><circle cx="32" cy="32" r="26" fill="none" stroke="#3F7A4E" stroke-width="6" stroke-linecap="round" stroke-dasharray="'+len+' 999"/></svg><span>'+pct+'%</span></div><div class="c-main"><div class="c-name">'+s.name+'</div><div class="c-sub">已掌握 '+p.done+' / '+p.total+' 个知识点</div></div><div class="arrow">→</div></a>';}).join('');
+</script></body></html>

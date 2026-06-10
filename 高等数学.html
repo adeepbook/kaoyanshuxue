@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>高等数学 · 学习进度地图</title>
+<style>
+  :root{
+    --paper:#F4F6F1;--surface:#FFFFFF;--ink:#1E241C;--muted:#6E7566;--faint:#9AA191;
+    --hair:#E5E9DF;--hair-strong:#D6DBCC;
+    --s0:#BFC4B8;--s1:#D8962E;--s2:#3F7A4E;--s0-bg:#F1F2EE;--s1-bg:#FBF1DD;--s2-bg:#E7F0E6;
+    --accent:#2E5E3D;--accent-soft:#EAF1E9;--e1:#2563A6;--e1-bg:#E6EEF6;--e3:#8A5CC0;--e3-bg:#F0E9F7;
+    --font-cn:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+    --font-num:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--font-cn);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:940px;margin:0 auto;padding:28px 20px 90px;}
+  .head{display:flex;gap:22px;align-items:center;background:var(--surface);border:1px solid var(--hair);border-radius:16px;padding:20px 24px;}
+  .ring-wrap{flex:0 0 auto;position:relative;width:96px;height:96px;}
+  .ring-wrap svg{transform:rotate(-90deg);display:block;}
+  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring-pct{font-family:var(--font-num);font-size:24px;font-weight:600;color:var(--accent);letter-spacing:-.5px;}
+  .ring-label{font-size:11px;color:var(--faint);margin-top:1px;}
+  .head-main{flex:1 1 auto;min-width:0;}
+  .subject-row{display:flex;align-items:center;gap:10px;}
+  .backlink{flex:0 0 auto;text-decoration:none;color:var(--muted);border:1px solid var(--hair-strong);border-radius:8px;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;}
+  .backlink:hover{border-color:var(--accent);color:var(--accent);}
+  .subject-title{font-size:21px;font-weight:700;letter-spacing:-.3px;}
+  .counts{display:flex;gap:18px;margin-top:12px;flex-wrap:wrap;}
+  .count{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);}
+  .count b{font-family:var(--font-num);font-size:15px;color:var(--ink);font-weight:600;}
+  .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
+  .dot.s0{background:var(--s0);}.dot.s1{background:var(--s1);}.dot.s2{background:var(--s2);}
+  .toolbar{display:flex;align-items:center;gap:10px;margin:22px 2px 14px;flex-wrap:wrap;}
+  .seg{display:flex;gap:4px;background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:4px;}
+  .seg button{border:none;background:transparent;color:var(--muted);font-family:var(--font-cn);font-size:13px;padding:6px 12px;border-radius:7px;cursor:pointer;transition:.12s;white-space:nowrap;}
+  .seg button:hover{color:var(--ink);}
+  .seg button.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+  .seg.exam button.active[data-exam="1"]{background:var(--e1-bg);color:var(--e1);}
+  .seg.exam button.active[data-exam="3"]{background:var(--e3-bg);color:var(--e3);}
+  .spacer{flex:1 1 auto;}
+  .txt-btn{border:1px solid var(--hair-strong);background:var(--surface);color:var(--muted);font-family:var(--font-cn);font-size:13px;padding:7px 13px;border-radius:9px;cursor:pointer;transition:.12s;}
+  .txt-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .txt-btn.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .module{background:var(--surface);border:1px solid var(--hair);border-radius:14px;margin-bottom:12px;overflow:hidden;}
+  .mod-head{display:flex;align-items:center;gap:12px;padding:15px 18px;cursor:pointer;user-select:none;}
+  .mod-head:hover{background:#FCFDFB;}
+  .caret{flex:0 0 auto;color:var(--faint);transition:transform .18s;font-size:11px;width:12px;text-align:center;}
+  .module.open>.mod-head .caret,.node.open>.row .caret{transform:rotate(90deg);}
+  .mod-title{flex:0 0 auto;font-weight:700;font-size:15.5px;}
+  .mod-desc{flex:1 1 auto;font-size:12.5px;color:var(--faint);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .mod-bar{flex:0 0 110px;height:6px;background:var(--hair);border-radius:99px;overflow:hidden;}
+  .mod-bar i{display:block;height:100%;background:var(--s2);border-radius:99px;transition:width .35s ease;}
+  .mod-frac{flex:0 0 auto;font-family:var(--font-num);font-size:12px;color:var(--muted);min-width:44px;text-align:right;}
+  .mod-body{display:none;padding:6px 18px 16px;border-top:1px solid var(--hair);}
+  .module.open>.mod-body{display:block;}
+  .branch{margin-left:9px;padding-left:14px;border-left:1px solid var(--hair);}
+  .branch.root{margin-left:2px;padding-left:10px;border-left:none;}
+  .row{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;cursor:pointer;}
+  .row:hover{background:#FAFBF8;}
+  .row .nm{flex:0 0 auto;font-size:14px;border-radius:5px;}
+  .row .nm:hover{color:var(--accent);}
+  .row.parent .nm{font-weight:600;}
+  .row .desc{flex:1 1 auto;font-size:12px;color:var(--faint);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .exam{flex:0 0 auto;font-size:10px;border-radius:5px;padding:1px 5px;margin-left:2px;font-weight:600;}
+  .exam.e1{color:var(--e1);background:var(--e1-bg);}.exam.e3{color:var(--e3);background:var(--e3-bg);}
+  .row .frac{flex:0 0 auto;margin-left:auto;font-family:var(--font-num);font-size:11px;}
+  .frac.a0{color:var(--faint);}.frac.a1{color:var(--s1);}.frac.a2{color:var(--s2);}
+  .has-content{flex:0 0 auto;font-size:10px;color:var(--accent);background:var(--accent-soft);border-radius:5px;padding:1px 5px;margin-left:2px;}
+  .has-note{flex:0 0 auto;font-size:10px;color:var(--muted);margin-left:2px;}
+  .sdot{width:14px;height:14px;border-radius:50%;border:2px solid var(--s0);flex:0 0 auto;transition:.18s;}
+  .row.leaf[data-st="0"] .sdot{border-color:var(--s0);background:transparent;}
+  .row.leaf[data-st="1"] .sdot{border-color:var(--s1);background:linear-gradient(90deg,var(--s1) 50%,transparent 50%);}
+  .row.leaf[data-st="2"] .sdot{border-color:var(--s2);background:var(--s2);}
+  .row.leaf[data-st="2"] .nm{color:var(--accent);}
+  .row.leaf[data-st="1"]{background:var(--s1-bg);}.row.leaf[data-st="2"]{background:var(--s2-bg);}
+  .delx{display:none;flex:0 0 auto;color:var(--faint);font-size:15px;line-height:1;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;margin-left:4px;}
+  body.editing .delx{display:inline-flex;}
+  .delx:hover{background:#F3D6D0;color:#B4402E;}
+  .addrow{display:none;gap:6px;margin:4px 0 4px 8px;align-items:center;}
+  body.editing .addrow{display:flex;}
+  .addrow input{flex:1 1 auto;border:1px dashed var(--hair-strong);background:var(--paper);border-radius:8px;padding:6px 10px;font-family:var(--font-cn);font-size:13px;color:var(--ink);}
+  .addrow input:focus{outline:none;border-color:var(--accent);background:#fff;}
+  .addrow button{border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:8px;width:30px;height:30px;font-size:16px;cursor:pointer;flex:0 0 auto;}
+  .rename-input{font:inherit;border:1px solid var(--accent);border-radius:6px;padding:2px 6px;background:#fff;color:var(--ink);}
+  .add-module{display:none;gap:8px;margin-top:6px;align-items:center;}
+  body.editing .add-module{display:flex;}
+  .add-module input{flex:1 1 auto;border:1px dashed var(--hair-strong);background:var(--surface);border-radius:11px;padding:12px 15px;font-family:var(--font-cn);font-size:14.5px;color:var(--ink);font-weight:600;}
+  .add-module input:focus{outline:none;border-color:var(--accent);}
+  .add-module button{border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:11px;padding:12px 20px;font-family:var(--font-cn);font-size:14px;cursor:pointer;white-space:nowrap;}
+  body.hide-desc .desc,body.hide-desc .mod-desc{display:none;}
+  .empty{text-align:center;color:var(--faint);padding:44px 20px;font-size:14px;}
+  .footnote{margin-top:24px;text-align:center;color:var(--faint);font-size:12px;line-height:1.7;}
+  .footnote button{background:none;border:none;color:var(--faint);text-decoration:underline;cursor:pointer;font-size:12px;font-family:var(--font-cn);}
+  .footnote button:hover{color:#B4402E;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  #overlay{position:fixed;inset:0;background:rgba(30,36,28,.32);opacity:0;pointer-events:none;transition:.2s;z-index:40;}
+  body.panel-open #overlay{opacity:1;pointer-events:auto;}
+  #panel{position:fixed;top:0;right:0;height:100%;width:min(520px,94vw);background:var(--surface);box-shadow:-8px 0 40px rgba(30,36,28,.14);transform:translateX(100%);transition:transform .24s ease;z-index:50;display:flex;flex-direction:column;}
+  body.panel-open #panel{transform:translateX(0);}
+  .panel-head{display:flex;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--hair);}
+  .crumb{flex:1 1 auto;min-width:0;}.crumb .path{font-size:11.5px;color:var(--faint);margin-bottom:3px;}.crumb .title{font-size:18px;font-weight:700;}
+  #panelClose{flex:0 0 auto;border:none;background:none;font-size:24px;color:var(--muted);cursor:pointer;line-height:1;padding:0 4px;}
+  .panel-scroll{flex:1 1 auto;overflow-y:auto;padding:16px 20px 24px;}
+  .status-pick{display:flex;gap:8px;margin-bottom:18px;}
+  .status-pick button{flex:1 1 0;border:1px solid var(--hair-strong);background:var(--surface);border-radius:9px;padding:9px;font-family:var(--font-cn);font-size:13px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .status-pick button .dot{width:9px;height:9px;}
+  .status-pick button.on[data-v="0"]{border-color:var(--s0);background:var(--s0-bg);color:var(--ink);}
+  .status-pick button.on[data-v="1"]{border-color:var(--s1);background:var(--s1-bg);color:#8a5d12;font-weight:600;}
+  .status-pick button.on[data-v="2"]{border-color:var(--s2);background:var(--s2-bg);color:var(--accent);font-weight:600;}
+  .sec-label{font-size:12px;font-weight:600;color:var(--muted);margin:20px 0 8px;}
+  .content{font-size:14px;color:var(--ink);}
+  .content h4{font-size:14.5px;margin:18px 0 6px;color:var(--accent);}
+  .content p{margin:6px 0;}.content ul{margin:6px 0;padding-left:18px;}
+  .content .formula{font-family:var(--font-num);background:var(--paper);border:1px solid var(--hair);border-radius:7px;padding:8px 10px;margin:6px 0;font-size:13px;overflow-x:auto;}
+  .content table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12.5px;}
+  .content th,.content td{border:1px solid var(--hair);padding:5px 7px;text-align:center;}
+  .content th{background:var(--paper);font-weight:600;color:var(--muted);}
+  .content .graph{background:var(--paper);border:1px solid var(--hair);border-radius:9px;padding:8px;margin:8px 0;}
+  .content .legend{display:flex;gap:16px;font-size:11.5px;color:var(--muted);margin-top:2px;justify-content:center;}
+  .content .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:4px;}
+  .no-content{font-size:13px;color:var(--faint);background:var(--paper);border:1px dashed var(--hair-strong);border-radius:9px;padding:14px;}
+  .notes-area{width:100%;min-height:70px;border:1px solid var(--hair-strong);border-radius:9px;padding:10px;font-family:var(--font-cn);font-size:13.5px;color:var(--ink);resize:vertical;background:var(--surface);}
+  .notes-area:focus{outline:none;border-color:var(--accent);}
+  .ai-box{border:1px solid var(--hair);border-radius:12px;background:#FCFDFB;margin-top:8px;overflow:hidden;}
+  .ai-header{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--hair);font-size:12px;color:var(--muted);}
+  .ai-header b{color:var(--ink);font-weight:600;}
+  .ai-header .cfg{margin-left:auto;color:var(--accent);cursor:pointer;border:1px solid var(--accent-soft);background:var(--accent-soft);border-radius:6px;padding:3px 9px;}
+  .ai-actions{display:flex;gap:6px;padding:10px;flex-wrap:wrap;border-bottom:1px solid var(--hair);}
+  .ai-chip{border:1px solid var(--hair-strong);background:var(--surface);border-radius:99px;padding:5px 12px;font-size:12.5px;color:var(--muted);cursor:pointer;}
+  .ai-chip:hover{border-color:var(--accent);color:var(--accent);}
+  .ai-chip.trace{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:600;}
+  .ai-log{padding:10px 12px;max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+  .ai-msg{font-size:13.5px;line-height:1.55;}
+  .ai-msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-radius:12px 12px 4px 12px;padding:8px 12px;max-width:85%;}
+  .ai-msg.bot{align-self:flex-start;background:var(--surface);border:1px solid var(--hair);border-radius:12px 12px 12px 4px;padding:9px 12px;max-width:92%;}
+  .ai-msg.bot code{background:var(--paper);padding:1px 4px;border-radius:4px;font-family:var(--font-num);font-size:12px;}
+  .ai-save{display:inline-block;margin-top:8px;font-size:12px;color:var(--accent);cursor:pointer;border:1px solid var(--accent-soft);background:var(--accent-soft);border-radius:7px;padding:4px 10px;}
+  .ai-save:hover{background:var(--accent);color:#fff;}
+  .ai-empty{color:var(--faint);font-size:12.5px;text-align:center;padding:8px;}
+  .ai-input{display:flex;gap:8px;padding:10px;border-top:1px solid var(--hair);}
+  .ai-input textarea{flex:1 1 auto;border:1px solid var(--hair-strong);border-radius:9px;padding:8px 10px;font-family:var(--font-cn);font-size:13.5px;resize:none;height:38px;color:var(--ink);}
+  .ai-input textarea:focus{outline:none;border-color:var(--accent);}
+  .ai-input button{flex:0 0 auto;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:9px;padding:0 16px;font-size:13.5px;cursor:pointer;}
+  .ai-input button:disabled{opacity:.5;cursor:default;}
+  .ai-msg.bot h4{font-size:14px;margin:11px 0 5px;color:var(--accent);font-weight:700;}
+  .ai-msg.bot p{margin:7px 0;}
+  .ai-msg.bot ul,.ai-msg.bot ol{margin:7px 0;padding-left:20px;}
+  .ai-msg.bot li{margin:3px 0;}
+  .ai-msg.bot strong{font-weight:700;}
+  .ai-msg.bot>*:first-child{margin-top:0;}.ai-msg.bot>*:last-child{margin-bottom:0;}
+  .ai-msg.aside{border-style:dashed!important;}
+  .ai-msg.user.aside{background:#80847c;}
+  .ai-header .beg{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);cursor:pointer;user-select:none;}
+  .ai-header .beg input{margin:0;width:13px;height:13px;accent-color:var(--accent);}
+  .ai-header .cfg{margin-left:8px;}
+  .modal{position:fixed;inset:0;background:rgba(30,36,28,.4);display:none;align-items:center;justify-content:center;z-index:60;padding:20px;}
+  .modal.open{display:flex;}
+  .modal-card{background:var(--surface);border-radius:16px;width:min(460px,96vw);max-height:90vh;overflow-y:auto;padding:22px 24px;}
+  .modal-card h3{margin:0 0 4px;font-size:18px;}.modal-card .sub{font-size:12px;color:var(--faint);margin-bottom:16px;}
+  .modal-card label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:14px 0 5px;}
+  .modal-card input,.modal-card select{width:100%;border:1px solid var(--hair-strong);border-radius:9px;padding:9px 11px;font-family:var(--font-cn);font-size:14px;color:var(--ink);background:var(--surface);}
+  .modal-card input:focus,.modal-card select:focus{outline:none;border-color:var(--accent);}
+  .set-actions{display:flex;align-items:center;gap:10px;margin-top:14px;}
+  .set-actions button{border:1px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:9px;padding:8px 14px;font-family:var(--font-cn);font-size:13px;cursor:pointer;}
+  #setTestResult{font-size:12.5px;}
+  .set-note{font-size:11.5px;color:var(--muted);background:var(--paper);border-radius:9px;padding:10px 12px;margin-top:14px;line-height:1.6;}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+  .modal-foot button{border-radius:9px;padding:9px 18px;font-family:var(--font-cn);font-size:14px;cursor:pointer;border:1px solid var(--hair-strong);background:var(--surface);color:var(--muted);}
+  .modal-foot button.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  @media (max-width:600px){.head{flex-direction:column;align-items:flex-start;gap:16px;}.mod-bar{display:none;}.mod-desc{white-space:normal;}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+</head>
+<body class="hide-desc-off">
+<div class="wrap">
+  <div class="head">
+    <div class="ring-wrap"><svg width="96" height="96" viewBox="0 0 96 96">
+      <circle cx="48" cy="48" r="42" fill="none" stroke="var(--hair)" stroke-width="9"/>
+      <circle id="ringAmber" cx="48" cy="48" r="42" fill="none" stroke="var(--s1)" stroke-width="9" stroke-linecap="round" stroke-dasharray="0 999"/>
+      <circle id="ringGreen" cx="48" cy="48" r="42" fill="none" stroke="var(--s2)" stroke-width="9" stroke-linecap="round" stroke-dasharray="0 999"/>
+    </svg><div class="ring-center"><span class="ring-pct" id="ringPct">0%</span><span class="ring-label">已掌握</span></div></div>
+    <div class="head-main">
+      <div class="subject-row"><a class="backlink" href="index.html" title="全部科目">←</a><div class="subject-title" id="subjectTitle"></div></div>
+      <div class="counts" id="counts"></div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div class="seg exam" id="examSeg"><button class="active" data-exam="all">全部</button><button data-exam="1">数一</button><button data-exam="3">数三</button></div>
+    <div class="seg" id="filters"><button class="active" data-filter="all">全部</button><button data-filter="0">未学</button><button data-filter="1">学习中</button><button data-filter="2">已掌握</button></div>
+    <div class="spacer"></div>
+    <button class="txt-btn" id="exportBtn">⬇ 导出复盘</button>
+    <button class="txt-btn" id="setBtn">⚙ 模型</button>
+    <button class="txt-btn on" id="descBtn">说明</button>
+    <button class="txt-btn" id="editBtn">编辑</button>
+  </div>
+  <div id="modules"></div>
+  <div class="add-module" id="addModule"><input id="newModuleInput" placeholder="新模块名称" maxlength="40"><button id="addModuleBtn">添加模块</button></div>
+  <div class="footnote">点知识点名称打开学习面板 · 点圆圈标记状态 · 卡住用「前置拆解」往下追根<br><button id="resetBtn">恢复本科目示例数据</button></div>
+</div>
+
+<div id="overlay"></div>
+<aside id="panel" aria-hidden="true">
+  <div class="panel-head"><div class="crumb"><div class="path" id="pPath"></div><div class="title" id="pTitle"></div></div><button id="panelClose">×</button></div>
+  <div class="panel-scroll">
+    <div class="status-pick" id="statusPick"><button data-v="0"><span class="dot s0"></span>未学</button><button data-v="1"><span class="dot s1"></span>学习中</button><button data-v="2"><span class="dot s2"></span>已掌握</button></div>
+    <div id="pContent"></div>
+    <div class="sec-label">我的笔记</div>
+    <textarea class="notes-area" id="pNotes" placeholder="记下你的理解、易错点、AI 的好解释…（自动保存，可导出）"></textarea>
+    <div class="sec-label">AI 学习助手</div>
+    <div class="ai-box">
+      <div class="ai-header">当前模型：<b id="aiModelLabel">—</b><label class="beg" title="假设零基础：每个术语都解释、不用黑话"><input type="checkbox" id="begToggle">零基础</label><span class="cfg" id="aiCfgBtn">设置</span></div>
+      <div class="ai-actions">
+        <span class="ai-chip trace" data-ai="前置">⛏ 前置拆解</span>
+        <span class="ai-chip trace" data-ai="细分">🔍 细分知识点</span>
+        <span class="ai-chip" data-ai="讲解">通俗讲解</span>
+        <span class="ai-chip" data-ai="出题">出题考我</span>
+        <span class="ai-chip" data-ai="类比">生活类比</span>
+        <span class="ai-chip" data-ai="易错">易错点</span>
+      </div>
+      <div class="ai-log" id="aiLog"></div>
+      <div class="ai-input"><textarea id="aiPrompt" placeholder="问问题…（以 /btw 开头问题外话，不进入当前对话）"></textarea><button id="aiSend">发送</button></div>
+    </div>
+  </div>
+</aside>
+
+<div class="modal" id="setModal"><div class="modal-card">
+  <h3>AI 模型设置</h3><div class="sub">配置你自己的 API。Key 只保存在本机。</div>
+  <label>服务商</label><select id="setProvider"></select>
+  <label>API Key <span id="keyHint" style="font-weight:400;color:var(--faint)"></span></label><input id="setKey" type="password" placeholder="粘贴你的 API Key">
+  <label>模型</label><select id="setModel"></select><input id="setModelCustom" placeholder="自定义模型名" style="display:none;margin-top:6px;">
+  <label>接口地址 (Base URL)</label><input id="setBase" placeholder="https://...">
+  <div class="set-actions"><button id="setTest">测试连接</button><span id="setTestResult"></span></div>
+  <div class="set-note" id="setNote"></div>
+  <div class="modal-foot"><button id="setCancel">取消</button><button id="setSave" class="primary">保存</button></div>
+</div></div>
+
+<div class="modal" id="exportModal"><div class="modal-card">
+  <h3>导出复盘资料</h3><div class="sub">把你的笔记和已「存入笔记」的 AI 解析，按知识点结构整理成一份排好版的资料。</div>
+  <div class="modal-foot" style="justify-content:stretch;gap:10px">
+    <button id="expPrint" class="primary" style="flex:1">排版预览 / 存 PDF</button>
+    <button id="expMd" style="flex:1">下载 Markdown</button>
+  </div>
+</div></div>
+
+<div class="modal" id="confirmModal"><div class="modal-card" style="max-width:340px">
+  <div id="confirmMsg" style="font-size:15px;line-height:1.5;margin-bottom:4px"></div>
+  <div class="modal-foot"><button id="confirmNo">取消</button><button id="confirmYes" class="primary">确定</button></div>
+</div></div>
+
+<script>window.SUBJECT = {"id":"gaoshu","name":"高等数学","modules":[{"id":"n54","name":"函数、极限、连续","desc":"微积分的地基","open":true,"children":[{"id":"n24","name":"函数的概念与性质","desc":"","open":true,"children":[{"id":"n3","name":"函数的定义","desc":"","open":false,"children":[{"id":"n0","name":"定义域","desc":"","status":0},{"id":"n1","name":"值域","desc":"","status":0},{"id":"n2","name":"对应法则","desc":"","status":0}]},{"id":"n8","name":"函数的表示法","desc":"","open":false,"children":[{"id":"n4","name":"解析法","desc":"","status":0},{"id":"n5","name":"表格法","desc":"","status":0},{"id":"n6","name":"图象法","desc":"","status":0},{"id":"n7","name":"分段函数","desc":"","status":0}]},{"id":"n13","name":"函数的四种特性","desc":"","open":false,"children":[{"id":"n9","name":"单调性","desc":"","status":0},{"id":"n10","name":"奇偶性","desc":"","status":0},{"id":"n11","name":"周期性","desc":"","status":0},{"id":"n12","name":"有界性","desc":"","status":0}]},{"id":"n14","name":"反函数","desc":"","status":0},{"id":"n15","name":"复合函数","desc":"","status":0},{"id":"n22","name":"基本初等函数","desc":"","open":true,"children":[{"id":"n16","name":"常数函数","desc":"","status":0},{"id":"n17","name":"幂函数","desc":"","status":0},{"id":"n18","name":"指数函数","desc":"","status":0},{"id":"n19","name":"对数函数","desc":"","status":0},{"id":"n20","name":"三角函数","desc":"正弦余弦正切","status":0,"key":"trig"},{"id":"n21","name":"反三角函数","desc":"","status":0}]},{"id":"n23","name":"初等函数","desc":"","status":0}]},{"id":"n43","name":"极限","desc":"","open":false,"children":[{"id":"n27","name":"数列的极限","desc":"","open":false,"children":[{"id":"n25","name":"数列极限的定义（ε-N）","desc":"","status":0},{"id":"n26","name":"收敛数列的性质","desc":"","status":0}]},{"id":"n31","name":"函数的极限","desc":"","open":false,"children":[{"id":"n28","name":"x→x₀ 的极限","desc":"","status":0},{"id":"n29","name":"x→∞ 的极限","desc":"","status":0},{"id":"n30","name":"左右极限","desc":"","status":0}]},{"id":"n35","name":"无穷小与无穷大","desc":"","open":false,"children":[{"id":"n32","name":"无穷小的概念","desc":"","status":0},{"id":"n33","name":"无穷小的比较","desc":"","status":0},{"id":"n34","name":"无穷大与无穷小的关系","desc":"","status":0}]},{"id":"n38","name":"极限运算法则","desc":"","open":false,"children":[{"id":"n36","name":"四则运算","desc":"","status":0},{"id":"n37","name":"复合函数的极限","desc":"","status":0}]},{"id":"n41","name":"两个重要极限","desc":"","open":false,"children":[{"id":"n39","name":"sin x / x","desc":"","status":0},{"id":"n40","name":"(1+1/x)^x（e）","desc":"","status":0}]},{"id":"n42","name":"等价无穷小替换","desc":"","status":0}]},{"id":"n53","name":"连续性","desc":"","open":false,"children":[{"id":"n44","name":"函数连续的概念","desc":"","status":0},{"id":"n47","name":"间断点及其分类","desc":"","open":false,"children":[{"id":"n45","name":"第一类间断点","desc":"","status":0},{"id":"n46","name":"第二类间断点","desc":"","status":0}]},{"id":"n48","name":"连续函数的运算","desc":"","status":0},{"id":"n52","name":"闭区间上连续函数的性质","desc":"","open":false,"children":[{"id":"n49","name":"最值定理","desc":"","status":0},{"id":"n50","name":"介值定理","desc":"","status":0},{"id":"n51","name":"零点定理","desc":"","status":0}]}]}]},{"id":"n84","name":"一元函数微分学","desc":"","open":false,"children":[{"id":"n67","name":"导数与微分","desc":"","open":false,"children":[{"id":"n58","name":"导数的概念","desc":"","open":false,"children":[{"id":"n55","name":"导数的定义","desc":"","status":0},{"id":"n56","name":"几何意义（切线斜率）","desc":"","status":0},{"id":"n57","name":"可导与连续的关系","desc":"","status":0}]},{"id":"n62","name":"求导法则","desc":"","open":false,"children":[{"id":"n59","name":"四则运算求导","desc":"","status":0},{"id":"n60","name":"复合函数求导（链式法则）","desc":"","status":0},{"id":"n61","name":"反函数求导","desc":"","status":0}]},{"id":"n63","name":"基本初等函数求导公式","desc":"","status":0},{"id":"n64","name":"高阶导数","desc":"","status":0},{"id":"n65","name":"隐函数与参数方程求导","desc":"","status":0},{"id":"n66","name":"微分的概念与运算","desc":"","status":0}]},{"id":"n72","name":"微分中值定理","desc":"","open":false,"children":[{"id":"n68","name":"罗尔定理","desc":"","status":0},{"id":"n69","name":"拉格朗日中值定理","desc":"","status":0},{"id":"n70","name":"柯西中值定理","desc":"","status":0},{"id":"n71","name":"泰勒公式","desc":"","status":0}]},{"id":"n83","name":"导数的应用","desc":"","open":false,"children":[{"id":"n73","name":"洛必达法则","desc":"","status":0},{"id":"n76","name":"单调性与极值","desc":"","open":false,"children":[{"id":"n74","name":"单调性判定","desc":"","status":0},{"id":"n75","name":"极值的必要与充分条件","desc":"","status":0}]},{"id":"n77","name":"最大值与最小值","desc":"","status":0},{"id":"n78","name":"凹凸性与拐点","desc":"","status":0},{"id":"n79","name":"函数图形的描绘","desc":"","status":0},{"id":"n82","name":"经济应用","desc":"","open":false,"children":[{"id":"n80","name":"边际分析","desc":"","status":0},{"id":"n81","name":"弹性分析","desc":"","status":0}],"exam":"3"}]}]},{"id":"n103","name":"一元函数积分学","desc":"","open":false,"children":[{"id":"n92","name":"不定积分","desc":"","open":false,"children":[{"id":"n85","name":"原函数与不定积分","desc":"","status":0},{"id":"n86","name":"基本积分公式","desc":"","status":0},{"id":"n89","name":"换元积分法","desc":"","open":false,"children":[{"id":"n87","name":"第一类换元（凑微分）","desc":"","status":0},{"id":"n88","name":"第二类换元","desc":"","status":0}]},{"id":"n90","name":"分部积分法","desc":"","status":0},{"id":"n91","name":"有理函数的积分","desc":"","status":0}]},{"id":"n99","name":"定积分","desc":"","open":false,"children":[{"id":"n93","name":"定积分的概念与性质","desc":"","status":0},{"id":"n94","name":"微积分基本定理","desc":"","status":0},{"id":"n95","name":"定积分的计算","desc":"","status":0},{"id":"n98","name":"反常积分","desc":"","open":false,"children":[{"id":"n96","name":"无穷区间","desc":"","status":0},{"id":"n97","name":"无界函数","desc":"","status":0}]}]},{"id":"n102","name":"定积分的应用","desc":"","open":false,"children":[{"id":"n100","name":"几何应用（面积、体积）","desc":"","status":0},{"id":"n101","name":"经济应用","desc":"","status":0,"exam":"3"}]}]},{"id":"n116","name":"向量代数与空间解析几何","desc":"数一专属：空间中的向量与图形","open":false,"children":[{"id":"n104","name":"向量及其线性运算","desc":"","status":0},{"id":"n108","name":"向量的乘积","desc":"","open":false,"children":[{"id":"n105","name":"数量积","desc":"","status":0},{"id":"n106","name":"向量积","desc":"","status":0},{"id":"n107","name":"混合积","desc":"","status":0}]},{"id":"n109","name":"平面及其方程","desc":"","status":0},{"id":"n110","name":"空间直线及其方程","desc":"","status":0},{"id":"n115","name":"曲面与空间曲线","desc":"","open":false,"children":[{"id":"n111","name":"旋转曲面","desc":"","status":0},{"id":"n112","name":"柱面","desc":"","status":0},{"id":"n113","name":"二次曲面","desc":"","status":0},{"id":"n114","name":"空间曲线","desc":"","status":0}]}],"exam":"1"},{"id":"n128","name":"多元函数微分学","desc":"","open":false,"children":[{"id":"n117","name":"多元函数的极限与连续","desc":"","status":0},{"id":"n122","name":"偏导数与全微分","desc":"","open":false,"children":[{"id":"n118","name":"偏导数","desc":"","status":0},{"id":"n119","name":"全微分","desc":"","status":0},{"id":"n120","name":"多元复合函数求导","desc":"","status":0},{"id":"n121","name":"隐函数求导","desc":"","status":0}]},{"id":"n123","name":"方向导数与梯度","desc":"","status":0,"exam":"1"},{"id":"n127","name":"多元函数的极值","desc":"","open":false,"children":[{"id":"n124","name":"无条件极值","desc":"","status":0},{"id":"n125","name":"条件极值与拉格朗日乘数法","desc":"","status":0},{"id":"n126","name":"经济应用","desc":"","status":0,"exam":"3"}]}]},{"id":"n134","name":"二重积分","desc":"","open":false,"children":[{"id":"n129","name":"二重积分的概念与性质","desc":"","status":0},{"id":"n133","name":"二重积分的计算","desc":"","open":false,"children":[{"id":"n130","name":"直角坐标","desc":"","status":0},{"id":"n131","name":"极坐标","desc":"","status":0},{"id":"n132","name":"交换积分次序","desc":"","status":0}]}]},{"id":"n139","name":"三重积分","desc":"数一专属","open":false,"children":[{"id":"n135","name":"三重积分的概念与性质","desc":"","status":0},{"id":"n136","name":"直角坐标计算","desc":"","status":0},{"id":"n137","name":"柱面坐标计算","desc":"","status":0},{"id":"n138","name":"球面坐标计算","desc":"","status":0}],"exam":"1"},{"id":"n150","name":"曲线积分与曲面积分","desc":"数一专属","open":false,"children":[{"id":"n142","name":"曲线积分","desc":"","open":false,"children":[{"id":"n140","name":"第一类曲线积分","desc":"","status":0},{"id":"n141","name":"第二类曲线积分","desc":"","status":0}]},{"id":"n145","name":"曲面积分","desc":"","open":false,"children":[{"id":"n143","name":"第一类曲面积分","desc":"","status":0},{"id":"n144","name":"第二类曲面积分","desc":"","status":0}]},{"id":"n146","name":"格林公式","desc":"","status":0},{"id":"n147","name":"高斯公式","desc":"","status":0},{"id":"n148","name":"斯托克斯公式","desc":"","status":0},{"id":"n149","name":"场论初步（梯度散度旋度）","desc":"","status":0}],"exam":"1"},{"id":"n164","name":"无穷级数","desc":"","open":false,"children":[{"id":"n158","name":"常数项级数","desc":"","open":false,"children":[{"id":"n151","name":"级数的概念与性质","desc":"","status":0},{"id":"n155","name":"正项级数判别法","desc":"","open":false,"children":[{"id":"n152","name":"比较判别法","desc":"","status":0},{"id":"n153","name":"比值判别法","desc":"","status":0},{"id":"n154","name":"根值判别法","desc":"","status":0}]},{"id":"n156","name":"交错级数与莱布尼茨","desc":"","status":0},{"id":"n157","name":"绝对收敛与条件收敛","desc":"","status":0}]},{"id":"n162","name":"幂级数","desc":"","open":false,"children":[{"id":"n159","name":"收敛半径与收敛域","desc":"","status":0},{"id":"n160","name":"幂级数的运算","desc":"","status":0},{"id":"n161","name":"展开成幂级数","desc":"","status":0}]},{"id":"n163","name":"傅里叶级数","desc":"","status":0,"exam":"1"}]},{"id":"n177","name":"微分方程与差分方程","desc":"","open":false,"children":[{"id":"n168","name":"一阶微分方程","desc":"","open":false,"children":[{"id":"n165","name":"可分离变量","desc":"","status":0},{"id":"n166","name":"齐次方程","desc":"","status":0},{"id":"n167","name":"一阶线性","desc":"","status":0}]},{"id":"n172","name":"高阶微分方程","desc":"","open":false,"children":[{"id":"n169","name":"可降阶高阶","desc":"","status":0},{"id":"n170","name":"二阶常系数齐次","desc":"","status":0},{"id":"n171","name":"二阶常系数非齐次","desc":"","status":0}]},{"id":"n173","name":"全微分方程","desc":"","status":0,"exam":"1"},{"id":"n174","name":"欧拉方程","desc":"","status":0,"exam":"1"},{"id":"n175","name":"差分方程","desc":"","status":0,"exam":"3"},{"id":"n176","name":"微分方程的经济应用","desc":"","status":0,"exam":"3"}]}]};</script>
+<script>
+/* ===== 单科引擎。数据由 build.js 注入到 window.SUBJECT ===== */
+const SID=window.SUBJECT.id;
+const KEY='km-'+SID+'-data',PKEY='km-'+SID+'-progress',FILTER_KEY='km-filter',EXAM_KEY='km-exam',CFG_KEY='km-aicfg';
+const _id=()=>Math.random().toString(36).slice(2,9);
+const store={
+  async get(k){if(typeof window!=='undefined'&&window.storage){try{const r=await window.storage.get(k);return r?r.value:null;}catch(e){}}try{return localStorage.getItem(k);}catch(e){return null;}},
+  async set(k,v){if(typeof window!=='undefined'&&window.storage){try{await window.storage.set(k,v);return;}catch(e){}}try{localStorage.setItem(k,v);}catch(e){}}
+};
+
+const PRESETS={
+  builtin:{label:'内置 Claude（仅 Claude 对话内）',models:['claude-sonnet-4'],baseUrl:'',needKey:false,fmt:'anthropic'},
+  deepseek:{label:'DeepSeek',models:['deepseek-v4-flash','deepseek-v4-pro','deepseek-chat','deepseek-reasoner'],baseUrl:'https://api.deepseek.com',needKey:true,fmt:'openai'},
+  openai:{label:'OpenAI（GPT）',models:['gpt-5.5','gpt-5.2','gpt-5.4-mini','gpt-5.4-nano'],baseUrl:'https://api.openai.com/v1',needKey:true,fmt:'openai'},
+  gemini:{label:'Google Gemini',models:['gemini-3.5-flash','gemini-3.1-pro','gemini-3-flash'],baseUrl:'https://generativelanguage.googleapis.com/v1beta',needKey:true,fmt:'gemini'},
+  custom:{label:'自定义（OpenAI 兼容）',models:[],baseUrl:'',needKey:true,fmt:'openai'}
+};
+let aiCfg={provider:'builtin',key:'',model:'claude-sonnet-4',baseUrl:''};
+function providerFmt(p){return (PRESETS[p]||PRESETS.custom).fmt;}
+async function callAI(system,messages,cfg){
+  cfg=cfg||aiCfg;const fmt=providerFmt(cfg.provider);
+  if(window.aiAPI&&window.aiAPI.call&&cfg.provider!=='builtin'){return await window.aiAPI.call(cfg,system,messages);}
+  if(fmt==='anthropic'){const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2400,system,messages})});const d=await r.json();if(d.type==='error')throw new Error(d.error&&d.error.message||'模型错误');return (d.content||[]).map(b=>b.type==='text'?b.text:'').join('\n');}
+  if(cfg.provider!=='builtin'&&PRESETS[cfg.provider]&&PRESETS[cfg.provider].needKey&&!cfg.key)throw new Error('请先在「⚙ 模型」里填入 API Key');
+  if(fmt==='gemini'){const url=cfg.baseUrl.replace(/\/$/,'')+'/models/'+cfg.model+':generateContent';const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':cfg.key},body:JSON.stringify({systemInstruction:{parts:[{text:system}]},contents:messages.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}))})});const d=await r.json();if(d.error)throw new Error(d.error.message||'Gemini 错误');return (d.candidates&&d.candidates[0]&&d.candidates[0].content.parts.map(p=>p.text||'').join(''))||'(空响应)';}
+  const url=cfg.baseUrl.replace(/\/$/,'')+'/chat/completions';
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},body:JSON.stringify({model:cfg.model,messages:[{role:'system',content:system},...messages]})});
+  const d=await r.json();if(d.error)throw new Error(d.error.message||'接口错误');return d.choices[0].message.content;
+}
+
+function trigGraph(){
+  const W=600,H=230,px0=34,px1=W-14,py0=16,py1=H-26,xmin=-2*Math.PI,xmax=2*Math.PI,ymin=-1.3,ymax=1.3;
+  const sx=x=>px0+(x-xmin)/(xmax-xmin)*(px1-px0),sy=y=>py1-(y-ymin)/(ymax-ymin)*(py1-py0);
+  const pathOf=fn=>{let d='';for(let i=0;i<=300;i++){const x=xmin+(xmax-xmin)*i/300;d+=(i?'L':'M')+sx(x).toFixed(1)+' '+sy(fn(x)).toFixed(1);}return d;};
+  const lab={'-2':'-2π','-1.5':'-3π/2','-1':'-π','-0.5':'-π/2','0.5':'π/2','1':'π','1.5':'3π/2','2':'2π'};let ticks='';
+  for(let k=-2;k<=2;k+=0.5){const X=sx(k*Math.PI);ticks+=`<line x1="${X}" y1="${sy(0)-3}" x2="${X}" y2="${sy(0)+3}" stroke="var(--hair-strong)"/>`;if(lab[String(k)])ticks+=`<text x="${X}" y="${sy(0)+15}" font-size="9" text-anchor="middle" fill="var(--faint)">${lab[String(k)]}</text>`;}
+  return `<div class="graph"><svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="${px0-26}" y1="${sy(1)}" x2="${px1}" y2="${sy(1)}" stroke="var(--hair)" stroke-dasharray="3 3"/><line x1="${px0-26}" y1="${sy(-1)}" x2="${px1}" y2="${sy(-1)}" stroke="var(--hair)" stroke-dasharray="3 3"/><text x="${px0-8}" y="${sy(1)+3}" font-size="9" text-anchor="end" fill="var(--faint)">1</text><text x="${px0-8}" y="${sy(-1)+3}" font-size="9" text-anchor="end" fill="var(--faint)">-1</text><line x1="${px0-26}" y1="${sy(0)}" x2="${px1}" y2="${sy(0)}" stroke="var(--hair-strong)"/><line x1="${sx(0)}" y1="${py0}" x2="${sx(0)}" y2="${py1}" stroke="var(--hair-strong)"/>${ticks}<path d="${pathOf(Math.sin)}" fill="none" stroke="var(--s2)" stroke-width="2"/><path d="${pathOf(Math.cos)}" fill="none" stroke="var(--s1)" stroke-width="2"/></svg><div class="legend"><span><i style="background:var(--s2)"></i>y = sin x</span><span><i style="background:var(--s1)"></i>y = cos x</span></div></div>`;
+}
+const CONTENT={trig:()=>`<div class="content"><h4>它是什么</h4><p>三角函数描述「角」与「比值」的关系。把角 θ 放在单位圆（半径 1）上，圆周上点的坐标就是 (cos θ, sin θ)——<strong>横坐标是 cos，纵坐标是 sin</strong>。</p><div class="formula">sin θ=对边/斜边　cos θ=邻边/斜边　tan θ=sin θ/cos θ</div><h4>函数图像</h4><p>sin 与 cos 形状相同，cos 相当于 sin 向左平移 π/2。</p>${trigGraph()}<h4>核心性质</h4><table><tr><th>函数</th><th>定义域</th><th>值域</th><th>周期</th><th>奇偶</th></tr><tr><td>sin x</td><td>R</td><td>[-1,1]</td><td>2π</td><td>奇</td></tr><tr><td>cos x</td><td>R</td><td>[-1,1]</td><td>2π</td><td>偶</td></tr><tr><td>tan x</td><td>x≠π/2+kπ</td><td>R</td><td>π</td><td>奇</td></tr></table><h4>特殊角</h4><table><tr><th>角</th><th>0°</th><th>30°</th><th>45°</th><th>60°</th><th>90°</th></tr><tr><td>sin</td><td>0</td><td>1/2</td><td>√2/2</td><td>√3/2</td><td>1</td></tr><tr><td>cos</td><td>1</td><td>√3/2</td><td>√2/2</td><td>1/2</td><td>0</td></tr><tr><td>tan</td><td>0</td><td>√3/3</td><td>1</td><td>√3</td><td>—</td></tr></table><h4>常用公式</h4><div class="formula">sin²x+cos²x=1<br>sin2x=2sinxcosx　cos2x=cos²x−sin²x<br>sin(x±y)=sinx cosy ± cosx siny</div></div>`};
+
+let state=null,filter='all',examFilter='all',editing=false,panelId=null,aiMsgs=[],notesTimer;
+const C=2*Math.PI*42,STT=['未学','学习中','已掌握'];
+function clone(o){return JSON.parse(JSON.stringify(o));}
+async function save(){await store.set(KEY,JSON.stringify(state));const t=totalStats();await store.set(PKEY,JSON.stringify({done:t.n2,total:t.total}));}
+function isLeaf(n){return !n.children||n.children.length===0;}
+function effExam(n,inh){return n.exam||inh||null;}
+function passExam(eff){return examFilter==='all'||!eff||eff===examFilter;}
+function stats(n,inh){const eff=effExam(n,inh);if(isLeaf(n)){if(!passExam(eff))return{done:0,learning:0,total:0};return{done:n.status===2?1:0,learning:n.status===1?1:0,total:1};}let d=0,l=0,t=0;n.children.forEach(c=>{const s=stats(c,eff);d+=s.done;l+=s.learning;t+=s.total;});return{done:d,learning:l,total:t};}
+function totalStats(){let n0=0,n1=0,n2=0;state.modules.forEach(m=>{const s=stats(m);n2+=s.done;n1+=s.learning;n0+=(s.total-s.done-s.learning);});return{n0,n1,n2,total:n0+n1+n2};}
+function nodeVisible(n,inh){const eff=effExam(n,inh);if(isLeaf(n))return passExam(eff)&&(filter==='all'||n.status===Number(filter));return n.children.some(c=>nodeVisible(c,eff));}
+function findNode(id,nodes){nodes=nodes||state.modules;for(const n of nodes){if(n.id===id)return n;if(n.children){const r=findNode(id,n.children);if(r)return r;}}return null;}
+function findPath(id,nodes,trail){nodes=nodes||state.modules;trail=trail||[];for(const n of nodes){if(n.id===id)return trail.concat(n.name);if(n.children){const r=findPath(id,n.children,trail.concat(n.name));if(r)return r;}}return null;}
+function deleteNode(id,nodes){nodes=nodes||state.modules;const i=nodes.findIndex(n=>n.id===id);if(i>=0){nodes.splice(i,1);return true;}for(const n of nodes){if(n.children&&deleteNode(id,n.children))return true;}return false;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function mdLite(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\n/g,'<br>');}
+function renderMd(t){
+  const E=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const inline=s=>s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>');
+  const lines=E(String(t)).split('\n');
+  let html='',para=[],list=null,buf=[];
+  const fp=()=>{if(para.length){html+='<p>'+para.map(inline).join('<br>')+'</p>';para=[];}};
+  const fl=()=>{if(list){html+='<'+list+'>'+buf.map(x=>'<li>'+inline(x)+'</li>').join('')+'</'+list+'>';buf=[];list=null;}};
+  lines.forEach(raw=>{
+    const line=raw.replace(/\s+$/,'');
+    if(/^```/.test(line.trim())){fp();return;}
+    if(/^\s*[-*]\s+/.test(line)){fp();if(list&&list!=='ul')fl();list='ul';buf.push(line.replace(/^\s*[-*]\s+/,''));return;}
+    if(/^\s*\d+[.、)]\s+/.test(line)){fp();if(list&&list!=='ol')fl();list='ol';buf.push(line.replace(/^\s*\d+[.、)]\s+/,''));return;}
+    fl();
+    if(/^#{1,4}\s+/.test(line)){fp();html+='<h4>'+inline(line.replace(/^#{1,4}\s+/,''))+'</h4>';return;}
+    if(line.trim()===''){fp();return;}
+    para.push(line);
+  });
+  fl();fp();
+  return html;
+}
+function examBadge(eff){return eff==='1'?'<span class="exam e1">数一</span>':eff==='3'?'<span class="exam e3">数三</span>':'';}
+
+function renderTree(nodes,inh){
+  return nodes.map(node=>{
+    if(!nodeVisible(node,inh))return '';
+    const eff=effExam(node,inh),st=stats(node,inh),open=node.open||filter!=='all',del=`<span class="delx" data-del="${node.id}">×</span>`;
+    if(isLeaf(node)){
+      const badge=examBadge(node.exam||inh)+(node.key&&CONTENT[node.key]?'<span class="has-content">含图文</span>':'')+((node.notes&&node.notes.trim())?'<span class="has-note">📝</span>':'');
+      return `<div class="node"><div class="row leaf" data-node="${node.id}" data-leaf="1" data-st="${node.status}" role="button" tabindex="0"><span class="sdot"></span><span class="nm">${esc(node.name)}</span>${node.desc?`<span class="desc">${esc(node.desc)}</span>`:'<span class="desc"></span>'}${badge}${del}</div></div>`;
+    }
+    const agg=st.total&&st.done===st.total?2:(st.done||st.learning?1:0);
+    const inner=open?`<div class="branch">${renderTree(node.children,eff)}<div class="addrow"><input data-addinput="${node.id}" placeholder="添加子项…" maxlength="40"><button data-addbtn="${node.id}">＋</button></div></div>`:'';
+    return `<div class="node ${open?'open':''}"><div class="row parent" data-node="${node.id}" data-toggle="1"><span class="caret">▶</span><span class="nm">${esc(node.name)}</span>${node.desc?`<span class="desc">${esc(node.desc)}</span>`:''}${examBadge(node.exam)}<span class="frac a${agg}">${st.done}/${st.total}</span>${del}</div>${inner}</div>`;
+  }).join('');
+}
+function render(){
+  const t=totalStats(),pct=t.total?Math.round(t.n2/t.total*100):0;
+  document.getElementById('ringPct').textContent=pct+'%';
+  const gLen=t.total?t.n2/t.total*C:0,aLen=t.total?t.n1/t.total*C:0,g=document.getElementById('ringGreen'),a=document.getElementById('ringAmber');
+  g.setAttribute('stroke-dasharray',gLen+' '+(C-gLen+1));g.setAttribute('stroke-dashoffset','0');
+  a.setAttribute('stroke-dasharray',aLen+' '+(C-aLen+1));a.setAttribute('stroke-dashoffset',(-gLen)+'');
+  document.getElementById('counts').innerHTML=`<span class="count"><i class="dot s0"></i>未学 <b>${t.n0}</b></span><span class="count"><i class="dot s1"></i>学习中 <b>${t.n1}</b></span><span class="count"><i class="dot s2"></i>已掌握 <b>${t.n2}</b></span>`;
+  const host=document.getElementById('modules');
+  const html=state.modules.map(m=>{
+    if(!nodeVisible(m))return '';
+    const st=stats(m),open=m.open||filter!=='all',mp=st.total?Math.round(st.done/st.total*100):0;
+    return `<div class="module ${open?'open':''}"><div class="mod-head" data-node="${m.id}" data-toggle="1"><span class="caret">▶</span><span class="mod-title">${esc(m.name)}</span><span class="mod-desc">${esc(m.desc||'')}</span>${examBadge(m.exam)}<span class="mod-bar"><i style="width:${mp}%"></i></span><span class="mod-frac">${st.done}/${st.total}</span><span class="delx" data-del="${m.id}">×</span></div><div class="mod-body"><div class="branch root">${renderTree(m.children,m.exam)}<div class="addrow"><input data-addinput="${m.id}" placeholder="添加知识点…" maxlength="40"><button data-addbtn="${m.id}">＋</button></div></div></div></div>`;
+  }).join('');
+  host.innerHTML=html||'<div class="empty">当前筛选下没有内容。</div>';
+}
+
+function openPanel(id){
+  panelId=id;aiMsgs=[];const node=findNode(id);if(!node)return;const path=findPath(id)||[];
+  document.getElementById('pPath').textContent=[state.name].concat(path.slice(0,-1)).join('  ›  ');
+  document.getElementById('pTitle').textContent=node.name;
+  [...document.querySelectorAll('#statusPick button')].forEach(b=>b.classList.toggle('on',Number(b.dataset.v)===node.status));
+  document.getElementById('pContent').innerHTML=(node.key&&CONTENT[node.key])?CONTENT[node.key]():'<div class="no-content">这个知识点暂无预置图文。点「通俗讲解」让 AI 讲，或「前置拆解」往下追根。</div>';
+  document.getElementById('pNotes').value=node.notes||'';
+  document.getElementById('aiLog').innerHTML='<div class="ai-empty">卡住了？点「前置拆解」把它拆成更基础的知识点，可一键加入树。</div>';
+  document.body.classList.add('panel-open');document.getElementById('panel').setAttribute('aria-hidden','false');
+}
+function closePanel(){document.body.classList.remove('panel-open');panelId=null;}
+let beginner=false;
+function aiSystem(){const path=findPath(panelId)||[];let s='你是一位耐心的考研数学助教，正在帮助学习「'+[state.name].concat(path).join(' / ')+'」。请用中文回答，并尽量详细、有条理：用 Markdown 小标题（##）和分点（- 或 1.）把结构理清，关键公式单独成行，多给具体例子和直观解释，把"为什么"讲透。';if(beginner)s+='【特别注意】学习者是零基础小白，没有任何相关背景：用到的每个术语都要先解释、不要使用未经说明的专业词汇、从最直观的地方讲起、步骤拆得很细、多打生活化的比方。';return s;}
+function addMsg(role,text,cls){
+  const log=document.getElementById('aiLog'),empty=log.querySelector('.ai-empty');if(empty)empty.remove();
+  const div=document.createElement('div');div.className='ai-msg '+(role==='user'?'user':'bot')+(cls?(' '+cls):'');
+  if(role==='user')div.textContent=text;else{div.innerHTML=renderMd(text)+'<span class="ai-save">＋ 存入笔记</span>';div.querySelector('.ai-save').onclick=()=>{const n=findNode(panelId);n.notes=(n.notes||'')+'\n\n【AI】'+text;document.getElementById('pNotes').value=n.notes;save();render();};}
+  log.appendChild(div);log.scrollTop=log.scrollHeight;return div;
+}
+async function askAside(text){
+  if(!text||!panelId)return;addMsg('user','题外话 · '+text,'aside');
+  const btn=document.getElementById('aiSend');btn.disabled=true;const pending=addMsg('bot','思考中…','aside');
+  try{const reply=await callAI(aiSystem()+'【这是用户临时的题外提问，独立回答即可，不影响主线话题。】',[{role:'user',content:text}]);pending.remove();addMsg('bot',reply,'aside');}
+  catch(err){pending.remove();addMsg('bot','调用失败：'+(err.message||err),'aside');}
+  btn.disabled=false; /* 注意：题外话不写入 aiMsgs，主线上下文不受影响 */
+}
+async function ask(text){if(!text||!panelId)return;addMsg('user',text);aiMsgs.push({role:'user',content:text});const btn=document.getElementById('aiSend');btn.disabled=true;const pending=addMsg('bot','思考中…');try{const reply=await callAI(aiSystem(),aiMsgs);pending.remove();addMsg('bot',reply);aiMsgs.push({role:'assistant',content:reply});}catch(err){pending.remove();addMsg('bot','调用失败：'+(err.message||err));}btn.disabled=false;}
+function parseArr(t){try{let s=String(t).trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();const a=JSON.parse(s);return Array.isArray(a)?a.filter(x=>typeof x==='string').slice(0,8):null;}catch(e){return null;}}
+async function tracePrereq(){
+  if(!panelId)return;const node=findNode(panelId),path=findPath(panelId)||[];
+  const log=document.getElementById('aiLog'),empty=log.querySelector('.ai-empty');if(empty)empty.remove();
+  const btn=document.getElementById('aiSend');btn.disabled=true;const pending=addMsg('bot','正在拆解前置知识…');
+  try{const sys='你在梳理学习的前置依赖。只输出一个 JSON 字符串数组，列出真正理解目标知识点所必须先掌握的前置知识点，3到6个，从最基础到最接近的顺序。可超出考研范围、下探到更基础知识。只输出 JSON 数组本身。';
+    const reply=await callAI(sys,[{role:'user',content:'目标知识点：'+[state.name].concat(path).join(' / ')}]);pending.remove();const arr=parseArr(reply);
+    if(!arr||!arr.length){addMsg('bot',reply);}else{const div=document.createElement('div');div.className='ai-msg bot';div.innerHTML='<strong>要弄懂它，建议先掌握（由基础到接近）：</strong><br>'+arr.map((n,i)=>(i+1)+'. '+esc(n)).join('<br>')+'<br><span class="ai-save addpre">＋ 作为前置加入知识树</span>';log.appendChild(div);log.scrollTop=log.scrollHeight;div.querySelector('.addpre').onclick=function(){const exist=new Set((node.children||[]).map(c=>c.name));node.children=node.children||[];arr.forEach(n=>{if(!exist.has(n))node.children.push({id:_id(),name:n,desc:'',status:0});});node.open=true;save();render();this.textContent='已加入 ✓ 可点开继续往下拆';this.onclick=null;};}
+  }catch(err){pending.remove();addMsg('bot','拆解失败：'+(err.message||err));}
+  btn.disabled=false;
+}
+const QUICK={讲解:'请用通俗的语言配合例子，给初学者讲解这个知识点。',出题:'请就这个知识点出 2-3 道由易到难的题目考我，先不要给答案。',类比:'用一个生活中的例子类比这个知识点，帮我直觉地理解。',易错:'初学者学这个知识点最容易犯哪些错误或常见误解？'};
+async function subdivide(){
+  if(!panelId)return;const node=findNode(panelId),path=findPath(panelId)||[];
+  const log=document.getElementById('aiLog'),empty=log.querySelector('.ai-empty');if(empty)empty.remove();
+  const btn=document.getElementById('aiSend');btn.disabled=true;const pending=addMsg('bot','正在细分知识点…');
+  try{const sys='你在把一个知识点细分成它内部更小、更具体的子知识点（包括常见的分类、方法、典型考法），3到7个，由浅入深。只输出 JSON 字符串数组，不要解释或代码块。';
+    const reply=await callAI(sys,[{role:'user',content:'目标知识点：'+[state.name].concat(path).join(' / ')}]);pending.remove();const arr=parseArr(reply);
+    if(!arr||!arr.length){addMsg('bot',reply);}else{const div=document.createElement('div');div.className='ai-msg bot';div.innerHTML='<strong>这个知识点可以拆成这些细点：</strong><br>'+arr.map((n,i)=>(i+1)+'. '+esc(n)).join('<br>')+'<br><span class="ai-save addpre">＋ 作为子知识点加入树</span>';log.appendChild(div);log.scrollTop=log.scrollHeight;div.querySelector('.addpre').onclick=function(){const exist=new Set((node.children||[]).map(c=>c.name));node.children=node.children||[];arr.forEach(n=>{if(!exist.has(n))node.children.push({id:_id(),name:n,desc:'',status:0});});node.open=true;save();render();this.textContent='已加入 ✓ 可点开继续细分';this.onclick=null;};}
+  }catch(err){pending.remove();addMsg('bot','细分失败：'+(err.message||err));}
+  btn.disabled=false;
+}
+
+/* ---- 导出复盘资料 ---- */
+function allLeaves(){const r=[];(function w(ns){ns.forEach(n=>{if(!n.children||!n.children.length)r.push(n);else w(n.children);});})(state.modules);return r;}
+function collectNotes(){const out=[];state.modules.forEach(m=>{const items=[];(function walk(ns,trail){(ns||[]).forEach(n=>{const t=trail.concat(n.name);if(n.notes&&n.notes.trim())items.push({path:t,status:n.status||0,notes:n.notes.trim()});if(n.children)walk(n.children,t);});})(m.children||[],[]);if(items.length)out.push({module:m.name,items});});return out;}
+function buildMarkdown(){const data=collectNotes(),all=allLeaves(),done=all.filter(n=>n.status===2).length;let s='# '+state.name+' · 复盘资料\n\n> 导出 '+new Date().toLocaleString('zh-CN')+' · 已掌握 '+done+'/'+all.length+'\n\n';if(!data.length){s+='_还没有任何笔记。学习时在知识点面板里记笔记、或把 AI 的好解释「存入笔记」，再来导出。_\n';return s;}data.forEach(g=>{s+='## '+g.module+'\n\n';g.items.forEach(it=>{s+='### '+it.path.join(' › ')+'　【'+STT[it.status]+'】\n\n'+it.notes+'\n\n';});});return s;}
+function downloadMd(){try{const blob=new Blob([buildMarkdown()],{type:'text/markdown;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=state.name+'-复盘资料.md';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);}catch(e){alert('下载失败：'+e.message);}}
+function openPrintable(){
+  const data=collectNotes(),all=allLeaves(),done=all.filter(n=>n.status===2).length;
+  let body='<h1>'+esc(state.name)+' · 复盘资料</h1><p class="meta">导出 '+new Date().toLocaleString('zh-CN')+' · 已掌握 '+done+'/'+all.length+'</p>';
+  if(!data.length)body+='<p class="empty">还没有任何笔记。</p>';
+  data.forEach(g=>{body+='<h2>'+esc(g.module)+'</h2>';g.items.forEach(it=>{body+='<div class="kp"><div class="kp-h"><span class="kp-t">'+esc(it.path.join(' › '))+'</span><span class="kp-s s'+it.status+'">'+STT[it.status]+'</span></div><div class="kp-n">'+renderMd(it.notes)+'</div></div>';});});
+  const css='body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#1E241C;max-width:780px;margin:0 auto;padding:40px 28px;line-height:1.6}h1{font-size:26px;margin:0 0 4px}.meta{color:#888;font-size:13px;margin:0 0 24px}h2{font-size:19px;border-bottom:2px solid #2E5E3D;padding-bottom:6px;margin:30px 0 12px;color:#2E5E3D}.kp{margin:0 0 16px;padding:12px 16px;border:1px solid #E5E9DF;border-radius:10px;page-break-inside:avoid}.kp-h{display:flex;align-items:center;gap:10px;margin-bottom:6px}.kp-t{font-weight:700;font-size:15px}.kp-s{font-size:11px;border-radius:5px;padding:1px 8px}.kp-s.s0{background:#F1F2EE;color:#888}.kp-s.s1{background:#FBF1DD;color:#8a5d12}.kp-s.s2{background:#E7F0E6;color:#2E5E3D}.kp-n{font-size:14px;white-space:normal;color:#333}.empty{color:#999}.print-btn{position:fixed;top:16px;right:16px;background:#2E5E3D;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;cursor:pointer}@media print{.print-btn{display:none}}';
+  const w=window.open('','_blank');
+  if(!w){alert('浏览器拦截了弹窗，请允许弹窗后重试，或改用「下载 Markdown」。');return;}
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+esc(state.name)+' 复盘资料</title><style>'+css+'</style></head><body><button class="print-btn" onclick="window.print()">打印 / 存为 PDF</button>'+body+'</body></html>');
+  w.document.close();
+}
+
+/* settings */
+function updateModelLabel(){const p=PRESETS[aiCfg.provider]||{label:aiCfg.provider};document.getElementById('aiModelLabel').textContent=aiCfg.provider==='builtin'?'内置 Claude（仅对话内）':(p.label+' · '+aiCfg.model);}
+function fillModelOptions(provider,selected){const pre=PRESETS[provider]||PRESETS.custom,sel=document.getElementById('setModel');sel.innerHTML=pre.models.map(m=>`<option value="${m}" ${m===selected?'selected':''}>${m}</option>`).join('')+`<option value="__custom__" ${(!pre.models.includes(selected))?'selected':''}>自定义…</option>`;const cust=document.getElementById('setModelCustom'),isC=!pre.models.includes(selected);cust.style.display=isC?'block':'none';if(isC)cust.value=selected||'';}
+function applyProviderUI(provider){const pre=PRESETS[provider]||PRESETS.custom;document.getElementById('keyHint').textContent=pre.needKey?'':'（无需 key）';document.getElementById('setKey').disabled=!pre.needKey;const notes={builtin:'内置模型仅在 Claude 网页/对话里体验，不消耗你的额度。要用自己的 key，请选下方服务商，并在本地或打包后的桌面应用里使用。',deepseek:'DeepSeek：platform.deepseek.com 获取 key。deepseek-v4-flash 快/省，deepseek-v4-pro 强。',openai:'OpenAI：platform.openai.com 获取 key。',gemini:'Gemini：aistudio.google.com 获取 key。',custom:'任何 OpenAI 兼容接口：填 Base URL（到 /v1）、模型名、key。'};document.getElementById('setNote').innerHTML='⚠ 浏览器会拦截对第三方 API 的直接请求；请用打包后的桌面应用（主进程代发）来调用你的 key。<br>'+(notes[provider]||'');}
+function gatherCfg(){const provider=document.getElementById('setProvider').value;let model=document.getElementById('setModel').value;if(model==='__custom__')model=document.getElementById('setModelCustom').value.trim();return {provider,key:document.getElementById('setKey').value.trim(),model,baseUrl:document.getElementById('setBase').value.trim()};}
+function openSettings(){const pSel=document.getElementById('setProvider');pSel.innerHTML=Object.keys(PRESETS).map(k=>`<option value="${k}" ${k===aiCfg.provider?'selected':''}>${PRESETS[k].label}</option>`).join('');document.getElementById('setKey').value=aiCfg.key||'';document.getElementById('setBase').value=aiCfg.baseUrl||(PRESETS[aiCfg.provider]||{}).baseUrl||'';fillModelOptions(aiCfg.provider,aiCfg.model);applyProviderUI(aiCfg.provider);document.getElementById('setTestResult').textContent='';document.getElementById('setModal').classList.add('open');}
+
+function uiConfirm(msg){return new Promise(res=>{const m=document.getElementById('confirmModal');document.getElementById('confirmMsg').textContent=msg;m.classList.add('open');const yes=document.getElementById('confirmYes'),no=document.getElementById('confirmNo');const done=v=>{m.classList.remove('open');yes.onclick=null;no.onclick=null;res(v);};yes.onclick=()=>done(true);no.onclick=()=>done(false);});}
+
+/* events */
+const modulesEl=document.getElementById('modules');
+modulesEl.addEventListener('click',e=>{
+  const del=e.target.closest('[data-del]');if(del){e.stopPropagation();deleteNode(del.dataset.del);save();render();return;}
+  const addbtn=e.target.closest('[data-addbtn]');
+  if(addbtn){const id=addbtn.dataset.addbtn,inp=modulesEl.querySelector(`[data-addinput="${id}"]`),v=inp.value.trim();if(v){const p=findNode(id);if(p){p.children=p.children||[];p.children.push({id:_id(),name:v,desc:'',status:0});p.open=true;save();render();const ni=modulesEl.querySelector(`[data-addinput="${id}"]`);if(ni)ni.focus();}}return;}
+  if(e.target.closest('.rename-input'))return;
+  if(e.target.closest('.sdot')){const row=e.target.closest('[data-node]');const n=findNode(row.dataset.node);if(n&&isLeaf(n)){n.status=(n.status+1)%3;save();render();if(panelId===n.id)[...document.querySelectorAll('#statusPick button')].forEach(b=>b.classList.toggle('on',Number(b.dataset.v)===n.status));}return;}
+  const nameEl=e.target.closest('.nm'),row=e.target.closest('[data-node]');if(!row)return;const node=findNode(row.dataset.node);if(!node)return;
+  if(nameEl&&!editing){e.stopPropagation();openPanel(node.id);return;}
+  if(row.dataset.leaf){if(!editing)openPanel(node.id);}else{node.open=!node.open;save();render();}
+});
+modulesEl.addEventListener('keydown',e=>{if(e.key==='Enter'){if(e.target.matches('[data-addinput]')){modulesEl.querySelector(`[data-addbtn="${e.target.dataset.addinput}"]`).click();}else if(e.target.classList.contains('leaf')){openPanel(findNode(e.target.dataset.node).id);}}});
+modulesEl.addEventListener('dblclick',e=>{if(!editing)return;const nameEl=e.target.closest('.nm,.mod-title');if(!nameEl)return;const row=e.target.closest('[data-node]'),node=findNode(row.dataset.node);if(!node)return;e.stopPropagation();const input=document.createElement('input');input.className='rename-input';input.value=node.name;nameEl.replaceWith(input);input.focus();input.select();const commit=()=>{node.name=input.value.trim()||node.name;save();render();};input.addEventListener('blur',commit);input.addEventListener('keydown',ev=>{if(ev.key==='Enter')input.blur();else if(ev.key==='Escape')render();ev.stopPropagation();});});
+document.getElementById('statusPick').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!panelId)return;const n=findNode(panelId);n.status=Number(b.dataset.v);[...document.querySelectorAll('#statusPick button')].forEach(x=>x.classList.toggle('on',x===b));save();render();});
+document.getElementById('pNotes').addEventListener('input',e=>{if(!panelId)return;findNode(panelId).notes=e.target.value;clearTimeout(notesTimer);notesTimer=setTimeout(()=>{save();render();},500);});
+document.querySelector('.ai-actions').addEventListener('click',e=>{const c=e.target.closest('.ai-chip');if(!c)return;if(c.dataset.ai==='前置')tracePrereq();else if(c.dataset.ai==='细分')subdivide();else ask(QUICK[c.dataset.ai]);});
+function sendInput(){const t=document.getElementById('aiPrompt'),v=t.value.trim();if(!v)return;t.value='';const m=v.match(/^\/btw[\s，,：:]*([\s\S]+)/i);if(m)askAside(m[1].trim());else ask(v);}
+document.getElementById('aiSend').addEventListener('click',sendInput);
+document.getElementById('aiPrompt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();document.getElementById('aiSend').click();}});
+document.getElementById('panelClose').addEventListener('click',closePanel);
+document.getElementById('overlay').addEventListener('click',closePanel);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const sm=document.getElementById('setModal'),em=document.getElementById('exportModal');if(sm.classList.contains('open'))sm.classList.remove('open');else if(em.classList.contains('open'))em.classList.remove('open');else if(document.body.classList.contains('panel-open'))closePanel();}});
+document.getElementById('filters').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;filter=b.dataset.filter;[...document.querySelectorAll('#filters button')].forEach(x=>x.classList.toggle('active',x===b));store.set(FILTER_KEY,filter);render();});
+document.getElementById('examSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;examFilter=b.dataset.exam;[...document.querySelectorAll('#examSeg button')].forEach(x=>x.classList.toggle('active',x===b));store.set(EXAM_KEY,examFilter);render();});
+document.getElementById('descBtn').addEventListener('click',e=>{const hide=document.body.classList.toggle('hide-desc');e.target.classList.toggle('on',!hide);});
+document.getElementById('editBtn').addEventListener('click',e=>{editing=!editing;document.body.classList.toggle('editing',editing);e.target.classList.toggle('on',editing);e.target.textContent=editing?'完成':'编辑';render();});
+document.getElementById('addModuleBtn').addEventListener('click',()=>{const inp=document.getElementById('newModuleInput'),v=inp.value.trim();if(v){state.modules.push({id:_id(),name:v,desc:'',open:true,children:[]});inp.value='';save();render();}});
+document.getElementById('newModuleInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('addModuleBtn').click();});
+document.getElementById('resetBtn').addEventListener('click',async()=>{if(!await uiConfirm('恢复本科目示例数据会清除当前进度与笔记，确定？'))return;state=clone(window.SUBJECT);save();render();});
+document.getElementById('setBtn').addEventListener('click',openSettings);
+document.getElementById('aiCfgBtn').addEventListener('click',openSettings);
+document.getElementById('setCancel').addEventListener('click',()=>document.getElementById('setModal').classList.remove('open'));
+document.getElementById('setProvider').addEventListener('change',e=>{const p=e.target.value,pre=PRESETS[p];document.getElementById('setBase').value=pre.baseUrl;fillModelOptions(p,pre.models[0]||'');applyProviderUI(p);});
+document.getElementById('setModel').addEventListener('change',e=>{const cust=document.getElementById('setModelCustom');cust.style.display=e.target.value==='__custom__'?'block':'none';if(e.target.value==='__custom__')cust.focus();});
+document.getElementById('setTest').addEventListener('click',async()=>{const res=document.getElementById('setTestResult');res.style.color='var(--muted)';res.textContent='测试中…';try{const r=await callAI('你是测试助手，请只回复“连接正常”。',[{role:'user',content:'测试'}],gatherCfg());res.style.color='var(--accent)';res.textContent='✓ '+(r||'').slice(0,20);}catch(err){res.style.color='#B4402E';res.textContent='✗ '+(err.message||err);}});
+document.getElementById('setSave').addEventListener('click',async()=>{aiCfg=gatherCfg();await store.set(CFG_KEY,JSON.stringify(aiCfg));updateModelLabel();document.getElementById('setModal').classList.remove('open');});
+document.getElementById('exportBtn').addEventListener('click',()=>document.getElementById('exportModal').classList.add('open'));
+document.getElementById('expPrint').addEventListener('click',()=>{document.getElementById('exportModal').classList.remove('open');openPrintable();});
+document.getElementById('expMd').addEventListener('click',()=>{document.getElementById('exportModal').classList.remove('open');downloadMd();});
+
+(async function(){
+  document.getElementById('subjectTitle').textContent=window.SUBJECT.name;
+  document.title=window.SUBJECT.name+' · 学习进度地图';
+  const raw=await store.get(KEY);state=raw?JSON.parse(raw):clone(window.SUBJECT);if(!raw)await save();
+  if(!state.name)state.name=window.SUBJECT.name;
+  const f=await store.get(FILTER_KEY);if(f){filter=f;[...document.querySelectorAll('#filters button')].forEach(x=>x.classList.toggle('active',x.dataset.filter===filter));}
+  const ex=await store.get(EXAM_KEY);if(ex){examFilter=ex;[...document.querySelectorAll('#examSeg button')].forEach(x=>x.classList.toggle('active',x.dataset.exam===examFilter));}
+  const cf=await store.get(CFG_KEY);if(cf){try{aiCfg=JSON.parse(cf);}catch(e){}}
+  const bg=await store.get('km-beginner');if(bg==='1'){beginner=true;document.getElementById('begToggle').checked=true;}
+  document.getElementById('begToggle').addEventListener('change',e=>{beginner=e.target.checked;store.set('km-beginner',beginner?'1':'0');});
+  updateModelLabel();render();
+})();
+</script>
+</body>
+</html>
