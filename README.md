@@ -17,6 +17,7 @@
 1. 装 Node.js（https://nodejs.org，LTS）。
 2. 双击 **build.bat**（自动：生成页面 → 装依赖 → 打包）。
 3. 到 dist\ 找安装包（.exe）。
+4. [📥 点击这里下载 exe 安装包](https://github.com/adeepbook/kaoyanshuxue/releases/download/v2.0/KaoyanStudyMap.Setup.2.0.0.exe)
 
 ## 或用 Claude Code
 在 VS Code 打开本文件夹，对 Claude Code 说：
